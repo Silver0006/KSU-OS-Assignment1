@@ -1,5 +1,4 @@
 // consumer.cpp by Aidan Marias
-#include "shared.hpp"
 #include <cstdlib>
 #include <sys/mman.h>
 #include <semaphore.h>
@@ -12,9 +11,9 @@ int main(){
     sem_t *sem_empty = sem_open("/sem_empty", 0); // Indicator if buffer is empty
     sem_t *sem_mutex = sem_open("/sem_mutex", 0); // If process is modifying shared memory
     int shm_fd = shm_open("/shared_data", O_RDWR, 0666); // Create shared memory object
-    passable_data *cart = (passable_data*) mmap(
+    int *cart = (int*) mmap(
         NULL, // Address starting point/hint thing?
-        sizeof(passable_data), // Allocation size
+        2*sizeof(int), // Allocation size
         PROT_READ, // Permision to write to shared data
         MAP_SHARED, // Permision to make viewable to other processes
         shm_fd, //Shared memory
@@ -24,7 +23,7 @@ int main(){
     while(true) {
         sem_wait(sem_full);
         sem_wait(sem_mutex); 
-        std::cout << "Consumer: " << cart->buffer[0] << ' ' << cart->buffer[1] << std::endl;
+        std::cout << "Consumer: " << cart[0] << ' ' << cart[1] << std::endl;
         sem_post(sem_mutex);
         sem_post(sem_empty);
     }

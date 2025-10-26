@@ -1,5 +1,4 @@
 // producer.cpp by Aidan Marias
-#include "shared.hpp"
 #include <cstdlib>
 #include <sys/mman.h>
 #include <semaphore.h>
@@ -17,10 +16,10 @@ int main(){
     sem_t *sem_mutex = sem_open("/sem_mutex", O_CREAT, 0666, 1); // If process is modifying shared memory
 
     int shm_fd = shm_open("/shared_data", O_CREAT | O_RDWR, 0666); // Create shared memory object
-    ftruncate(shm_fd, sizeof(passable_data)); // Set shared memory to size of passable_data structure.
-    passable_data *cart = (passable_data*) mmap(
+    ftruncate(shm_fd, 2*sizeof(int)); // Set shared memory to size of passable_data structure.
+    int *cart = (int*) mmap(
         NULL, // Address starting point/hint thing?
-        sizeof(passable_data), // Allocation size
+        2*sizeof(int), // Allocation size
         PROT_WRITE, // Permision to write to shared data
         MAP_SHARED, // Permision to make viewable to other processes
         shm_fd, //Shared memory
@@ -34,9 +33,9 @@ int main(){
     while(true) {
         sem_wait(sem_empty);
         sem_wait(sem_mutex); 
-        cart->buffer[0] = std::rand();
-        cart->buffer[1] = std::rand();
-        std::cout << "Producer: " << cart->buffer[0] << ' ' << cart->buffer[1] << std::endl;
+        cart[0] = std::rand();
+        cart[1] = std::rand();
+        std::cout << "Producer: " << cart[0] << ' ' << cart[1] << std::endl;
         sem_post(sem_mutex);
         sem_post(sem_full);
     }
